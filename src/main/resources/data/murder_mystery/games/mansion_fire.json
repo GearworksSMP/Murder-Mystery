@@ -1,8 +1,9 @@
 {
 	"type": "murder_mystery:murder_mystery",
+	"game_duration": 8400,
  	"map": {
-		"name": "map.murder_mystery.mansion",
- 		"map": "murder_mystery:mansion",
+		"name": "map.murder_mystery.mansion_fire",
+ 		"map": "murder_mystery:mansion_fire",
  		"biome": "minecraft:dark_forest",
 		"waiting_position": [ 244, 13, 54 ],
 		"spawn_bounds": {
@@ -12,7 +13,7 @@
 		"spawn_predicates": [
 			{
 				"type": "murder_mystery:standing_on",
-				"tag": "murder_mystery:mansion_spawn_on"
+				"tag": "murder_mystery:mansion_fire_spawn_on"
 			}
 		]
  	},

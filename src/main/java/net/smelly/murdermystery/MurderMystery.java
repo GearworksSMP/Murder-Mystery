@@ -25,6 +25,10 @@ public final class MurderMystery implements ModInitializer {
 
 	static final TagKey<Block> MANSION_SPAWN_ON = TagKey.of(RegistryKeys.BLOCK, new Identifier(MOD_ID, "mansion_spawn_on"));
 	static final TagKey<Block> METRO_SPAWN_ON = TagKey.of(RegistryKeys.BLOCK, new Identifier(MOD_ID, "metro_spawn_on"));
+	static final TagKey<Block> INVESTIGATORS_HOUSE_SPAWN_ON = TagKey.of(RegistryKeys.BLOCK, new Identifier(MOD_ID, "investigators_house_spawn_on"));
+	static final TagKey<Block> KIERANS_MANSION_SPAWN_ON = TagKey.of(RegistryKeys.BLOCK, new Identifier(MOD_ID, "kierans_mansion_spawn_on"));
+	static final TagKey<Block> MANSION_FIRE_SPAWN_ON = TagKey.of(RegistryKeys.BLOCK, new Identifier(MOD_ID, "mansion_fire_spawn_on"));
+	static final TagKey<Block> CITY_SPAWN_ON = TagKey.of(RegistryKeys.BLOCK, new Identifier(MOD_ID, "city_spawn_on"));
 
 	@Override
 	public void onInitialize() {

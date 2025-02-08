@@ -4,6 +4,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import eu.pb4.holograms.api.Holograms;
 import eu.pb4.holograms.api.holograms.WorldHologram;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -34,8 +37,11 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Pair;
 import net.minecraft.util.collection.WeightedList;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction.Axis;
 import net.minecraft.util.math.EulerAngle;
@@ -57,9 +63,11 @@ import xyz.nucleoid.plasmid.game.player.PlayerOfferResult;
 import xyz.nucleoid.plasmid.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerChatEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerSwingHandEvent;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -124,9 +132,20 @@ public final class MMActive {
 			activity.listen(PlayerDeathEvent.EVENT, active::onPlayerDeath);
 			activity.listen(PlayerDamageEvent.EVENT, active::onPlayerDamage);
 			activity.listen(PlayerChatEvent.EVENT, active::onPlayerChat);
+			activity.listen(BlockUseEvent.EVENT, active::onBlockUse);
 
 			activity.listen(GameActivityEvents.TICK, active::tick);
 		});
+	}
+
+	private ActionResult onBlockUse(ServerPlayerEntity serverPlayer, Hand hand, BlockHitResult blockHitResult) {
+		if (blockHitResult.getType() == BlockHitResult.Type.BLOCK) {
+			BlockState hitState = world.getBlockState(blockHitResult.getBlockPos());
+			if (hitState.getBlock() instanceof TrapdoorBlock) {
+				return ActionResult.FAIL;
+			}
+		}
+		return ActionResult.PASS;
 	}
 
 	private static ItemStack getDetectiveBow() {
@@ -200,12 +219,15 @@ public final class MMActive {
 					if (playerRole != null) {
 						player.networkHandler.sendPacket(new SubtitleS2CPacket(playerRole.getName().formatted(playerRole.getDisplayColor(), Formatting.ITALIC)));
 
-						if (playerRole != Role.DETECTIVE && !this.hasDetectiveBow(player) && player.getInventory().contains(new ItemStack(Items.SUNFLOWER))) {
+						if (playerRole == Role.INNOCENT && !this.hasDetectiveBow(player) && hasCoin(player)) {
 							int coins = this.getCoinCount(player);
 							if (coins >= 10) {
 								this.takeCoins(player, 10);
-								if (!player.getInventory().contains(new ItemStack(Items.BOW))) player.getInventory().insertStack(ItemStackBuilder.of(Items.BOW).setUnbreakable().build());
+								if (!hasBow(player)) {
+									player.getInventory().insertStack(ItemStackBuilder.of(Items.BOW).setUnbreakable().build());
+								}
 								player.getInventory().insertStack(new ItemStack(Items.ARROW));
+								this.participants.sendMessage(Text.translatable("text.murder_mystery.arrow_purchased").formatted(Formatting.GOLD, Formatting.BOLD));
 							}
 						}
 					}
@@ -399,6 +421,20 @@ public final class MMActive {
 	private boolean hasDetectiveBow(ServerPlayerEntity player) {
 		for (int i = 0; i < player.getInventory().size(); i++) {
 			if (player.getInventory().getStack(i).getItem() == MMCustomItems.DETECTIVE_BOW) return true;
+		}
+		return false;
+	}
+
+	private boolean hasCoin(ServerPlayerEntity player) {
+		for (int i = 0; i < player.getInventory().size(); i++) {
+			if (player.getInventory().getStack(i).getItem() == Items.SUNFLOWER) return true;
+		}
+		return false;
+	}
+
+	private boolean hasBow(ServerPlayerEntity player) {
+		for (int i = 0; i < player.getInventory().size(); i++) {
+			if (player.getInventory().getStack(i).getItem() == Items.BOW) return true;
 		}
 		return false;
 	}

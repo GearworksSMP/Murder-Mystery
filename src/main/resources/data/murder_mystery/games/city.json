@@ -1,18 +1,19 @@
 {
 	"type": "murder_mystery:murder_mystery",
+	"game_duration": 12000,
  	"map": {
-		"name": "map.murder_mystery.mansion",
- 		"map": "murder_mystery:mansion",
+		"name": "map.murder_mystery.city",
+ 		"map": "murder_mystery:city",
  		"biome": "minecraft:dark_forest",
-		"waiting_position": [ 244, 13, 54 ],
+		"waiting_position": [ 80, 144, 80 ],
 		"spawn_bounds": {
-			"min": [ 22, 2, 24 ],
-			"max": [ 74, 21, 78 ]
+			"min": [ 43, 22, 5 ],
+			"max": [ 99, 42, 26 ]
 		},
 		"spawn_predicates": [
 			{
 				"type": "murder_mystery:standing_on",
-				"tag": "murder_mystery:mansion_spawn_on"
+				"tag": "murder_mystery:city_spawn_on"
 			}
 		]
  	},

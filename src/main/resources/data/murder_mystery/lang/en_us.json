@@ -1,12 +1,21 @@
 {
     "game.murder_mystery.mansion": "Murder Mystery: Mansion",
     "game.murder_mystery.metro": "Murder Mystery: Metro",
+    "game.murder_mystery.investigators_house": "Murder Mystery: Investigators House",
+    "game.murder_mystery.kierans_mansion": "Murder Mystery: Kierans Mansion",
+    "game.murder_mystery.mansion_fire": "Murder Mystery: Mansion With Fire",
+    "game.murder_mystery.city": "Murder Mystery: City by Uberswe & Guybrush",
     "gameType.murder_mystery.murder_mystery": "Murder Mystery",
+    "game.murder_mystery.murder_mystery": "Murder Mystery",
     "item.murder_mystery.coin": "Coin",
     "item.murder_mystery.detective_bow": "Detective's Bow",
     "item.murder_mystery.murderer_blade": "Murderer's Blade",
     "map.murder_mystery.mansion": "Murder Mansion",
     "map.murder_mystery.metro": "Murder Metro",
+    "map.murder_mystery.investigators_house": "Murder Investigators House",
+    "map.murder_mystery.mansion_fire": "Murder Mansion With Fire",
+    "map.murder_mystery.kierans_mansion": "Kierans Mansion",
+    "map.murder_mystery.city": "City by Uberswe & Guybrush",
     "role.murder_mystery.detective": "Detective",
     "role.murder_mystery.innocent": "Innocent",
     "role.murder_mystery.murderer": "Murderer",
@@ -47,5 +56,6 @@
     "text.murder_mystery.sidebar.innocents_left": "Innocents Left: %s",
     "text.murder_mystery.sidebar.map": "Map: %s",
     "text.murder_mystery.sidebar.starting_in": "Starting In: %s",
-    "text.murder_mystery.sidebar.time_left": "Time Left: %s"
+    "text.murder_mystery.sidebar.time_left": "Time Left: %s",
+    "text.murder_mystery.arrow_purchased": "Player Purchased Arrow With Coins"
 }

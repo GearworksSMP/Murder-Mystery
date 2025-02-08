@@ -1,0 +1,14 @@
+{
+	"values": [
+		"minecraft:andesite",
+		"hearth_and_home:white_tiles",
+		"hearth_and_home:purple_tiles",
+		"minecraft:mossy_cobblestone",
+		"minecraft:stripped_spruce_log",
+		"minecraft:stripped_dark_oak_log",
+		"minecraft:stripped_jungle_wood",
+		"minecraft:gray_concrete",
+		"minecraft:cobblestone",
+		"create:calcite_pillar"
+	]
+}
