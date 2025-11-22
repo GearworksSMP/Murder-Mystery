@@ -68,6 +68,8 @@ import xyz.nucleoid.stimuli.event.player.PlayerChatEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerSwingHandEvent;
+import xyz.nucleoid.plasmid.game.GameSpaceStatistics;
+import xyz.nucleoid.plasmid.game.stats.StatisticKeys;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -92,6 +94,7 @@ public final class MMActive {
 	private final ServerWorld world;
 	private final PlayerSet participants;
 	private final Set<ServerPlayerEntity> aliveParticipants, deadParticipants;
+	private final GameSpaceStatistics statistics;
 
 	public int ticksTillStart;
 	private int ticksTillClose = -1;
@@ -99,6 +102,7 @@ public final class MMActive {
 
 	private MMActive(GameSpace gameSpace, ServerWorld world, MMMap map, MMConfig config, BiPredicate<ServerWorld, BlockPos.Mutable> spawnPredicate, GlobalWidgets widgets, GameActivity activity) {
 		this.gameSpace = gameSpace;
+		this.statistics = gameSpace.getStatistics();
 		this.config = config;
 		this.spawnLogic = new MMSpawnLogic(world, map.config, spawnPredicate, false);
 		this.scoreboard = new MMScoreboard(world, this, widgets);
@@ -188,6 +192,16 @@ public final class MMActive {
 		this.scoreboard.updateRendering();
 		this.spawnLogic.populateCoinGenerators();
 		this.participants.sendMessage(Text.translatable("text.murder_mystery.game_begin_in", ticksTillStart / 20).formatted(Formatting.GREEN, Formatting.BOLD));
+
+		// Track game start statistics
+		if (this.statistics != null) {
+			this.statistics.bundle("murder_mystery").global().increment(MMStatistics.TOTAL_ROUNDS, 1);
+			int playerCount = this.participants.size();
+			for (ServerPlayerEntity player : this.participants) {
+				this.statistics.bundle("murder_mystery").forPlayer(player).increment(StatisticKeys.GAMES_PLAYED, 1);
+				this.statistics.bundle("murder_mystery").forPlayer(player).set(MMStatistics.PLAYERS_IN_ROUND, playerCount);
+			}
+		}
 	}
 
 	private void disable() {
@@ -228,6 +242,11 @@ public final class MMActive {
 								}
 								player.getInventory().insertStack(new ItemStack(Items.ARROW));
 								this.participants.sendMessage(Text.translatable("text.murder_mystery.arrow_purchased").formatted(Formatting.GOLD, Formatting.BOLD));
+
+								// Track bow purchase statistic
+								if (this.statistics != null) {
+									this.statistics.bundle("murder_mystery").forPlayer(player).increment(MMStatistics.DETECTIVE_BOWS_PURCHASED, 1);
+								}
 							}
 						}
 					}
@@ -324,6 +343,30 @@ public final class MMActive {
 
 	private void eliminatePlayer(ServerPlayerEntity attacker, ServerPlayerEntity player) {
 		Role yourRole = this.getPlayerRole(player);
+		Role attackerRole = this.getPlayerRole(attacker);
+
+		// Track kill/death statistics
+		if (this.statistics != null && attacker != player) {
+			var bundle = this.statistics.bundle("murder_mystery");
+			if (attackerRole == Role.MURDERER) {
+				bundle.forPlayer(attacker).increment(MMStatistics.KILLS_AS_MURDERER, 1);
+				bundle.forPlayer(attacker).increment(StatisticKeys.KILLS, 1);
+			} else if (attackerRole == Role.DETECTIVE) {
+				bundle.forPlayer(attacker).increment(MMStatistics.KILLS_AS_DETECTIVE, 1);
+				bundle.forPlayer(attacker).increment(StatisticKeys.KILLS, 1);
+
+				if (yourRole == Role.MURDERER) {
+					bundle.forPlayer(attacker).increment(MMStatistics.CAUGHT_MURDERER, 1);
+				} else if (yourRole == Role.INNOCENT || yourRole == Role.DETECTIVE) {
+					// Track friendly fire by detective
+					bundle.forPlayer(attacker).increment(MMStatistics.INNOCENT_KILLS_AS_DETECTIVE, 1);
+				}
+			}
+
+			// Track deaths for the victim
+			bundle.forPlayer(player).increment(StatisticKeys.DEATHS, 1);
+		}
+
 		if (this.hasDetectiveBow(player)) {
 			this.spawnDetectiveBow(player);
 		}
@@ -377,6 +420,28 @@ public final class MMActive {
 	}
 
 	private void doWin(Role role) {
+		// Track win/loss statistics
+		if (this.statistics != null) {
+			var bundle = this.statistics.bundle("murder_mystery");
+			for (ServerPlayerEntity player : this.participants) {
+				Role playerRole = this.getPlayerRole(player);
+				if (playerRole != null) {
+					if (playerRole == role || (role == Role.INNOCENT && playerRole == Role.DETECTIVE)) {
+						// Player won (detective wins when innocents win)
+						bundle.forPlayer(player).increment(StatisticKeys.GAMES_WON, 1);
+
+						// Track survival as innocent
+						if (playerRole == Role.INNOCENT && !this.deadParticipants.contains(player)) {
+							bundle.forPlayer(player).increment(MMStatistics.SURVIVED_AS_INNOCENT, 1);
+						}
+					} else {
+						// Player lost
+						bundle.forPlayer(player).increment(StatisticKeys.GAMES_LOST, 1);
+					}
+				}
+			}
+		}
+
 		for (ServerPlayerEntity player : this.world.getPlayers()) {
 			player.playSound(role.winSound, SoundCategory.PLAYERS, 1.0F, 1.0F);
 			player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.empty()));
